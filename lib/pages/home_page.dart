@@ -3,6 +3,8 @@ import 'package:divertidachat/widgets/profile_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'pages.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -28,15 +30,20 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Center(
           child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ProfileCard(
             name: authState.user?.name,
             username: authState.user?.username,
-            email: authState.user?.email,
             photoUrl: authState.user?.photoUrl,
           ),
           const SizedBox(height: 20),
+          ElevatedButton(
+              onPressed: () {
+                // Navigate to chat page
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const ChatPage()));
+              },
+              child: Text('Chat')),
         ],
       )),
     );

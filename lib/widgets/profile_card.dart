@@ -3,14 +3,12 @@ import 'package:flutter/material.dart';
 class ProfileCard extends StatelessWidget {
   final String? name;
   final String? username;
-  final String? email;
   final String? photoUrl;
 
   const ProfileCard({
     super.key,
     this.name,
     this.username,
-    this.email,
     this.photoUrl,
   });
 
@@ -29,8 +27,6 @@ class ProfileCard extends StatelessWidget {
             Text(name ?? 'No Name'),
             const SizedBox(height: 2),
             Text(username ?? 'No Username'),
-            const SizedBox(height: 2),
-            Text(email ?? 'No Email'),
           ],
         ),
       ),
