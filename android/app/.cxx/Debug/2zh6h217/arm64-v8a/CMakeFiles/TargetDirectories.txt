@@ -1,0 +1,2 @@
+/home/shogo/Documents/github/divertidachat/android/app/.cxx/Debug/2zh6h217/arm64-v8a/CMakeFiles/edit_cache.dir
+/home/shogo/Documents/github/divertidachat/android/app/.cxx/Debug/2zh6h217/arm64-v8a/CMakeFiles/rebuild_cache.dir

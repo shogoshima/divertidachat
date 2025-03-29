@@ -1,0 +1,2 @@
+/home/shogo/Documents/github/divertidachat/android/app/.cxx/Debug/2zh6h217/armeabi-v7a/CMakeFiles/edit_cache.dir
+/home/shogo/Documents/github/divertidachat/android/app/.cxx/Debug/2zh6h217/armeabi-v7a/CMakeFiles/rebuild_cache.dir
