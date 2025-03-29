@@ -15,7 +15,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final _channel = WebSocketChannel.connect(
-    Uri.parse('ws://10.0.2.2:8080/ws'),
+    Uri.parse('ws://192.168.15.5:8080/ws'),
   );
 
   final List<types.Message> _messages = [];

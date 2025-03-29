@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 
 void main() {
   runApp(MultiProvider(providers: [
-    Provider(create: (_) => ApiService('http://10.0.2.2:8080')),
+    Provider(create: (_) => ApiService('http://192.168.15.5:8080')),
     Provider(
         create: (context) => GoogleAuthService(context.read<ApiService>())),
     ChangeNotifierProvider(

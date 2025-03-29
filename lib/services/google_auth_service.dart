@@ -9,9 +9,13 @@ class GoogleAuthService {
   GoogleAuthService(this.api);
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-      scopes: ['email', 'profile'],
-      serverClientId:
-          '830238838384-2stg8g2od1tmudfcfo0f6psbalsuct31.apps.googleusercontent.com');
+    scopes: [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ],
+    serverClientId:
+        '830238838384-2stg8g2od1tmudfcfo0f6psbalsuct31.apps.googleusercontent.com',
+  );
 
   Future<User?> signIn() async {
     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
