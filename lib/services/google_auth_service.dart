@@ -25,7 +25,7 @@ class GoogleAuthService {
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
 
-    final data = await api.post('/auth', {}, googleAuth.idToken);
+    final data = await api.post('/auth/login', {}, googleAuth.idToken);
     if (data == null) {
       throw Exception('Failed to authenticate with Google');
     }

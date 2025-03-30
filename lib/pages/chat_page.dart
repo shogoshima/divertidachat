@@ -3,103 +3,57 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:divertidachat/models/models.dart' as models;
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  final String userId;
+  final String chatId;
+  final String chatName;
+  const ChatPage({
+    super.key,
+    required this.userId,
+    required this.chatId,
+    required this.chatName,
+  });
 
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final _channel = WebSocketChannel.connect(
-    Uri.parse('ws://192.168.15.5:8080/ws'),
-  );
-
-  final List<types.Message> _messages = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMessages();
-
-    // Listen to the WebSocket stream outside of the build method
-    _channel.stream.listen((data) {
-      final textMessage = types.TextMessage(
-        author: types.User(
-          id: 'other-user-id',
-        ),
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-        text: data.toString(),
-      );
-      // Update the state safely here
-      _addMessage(textMessage);
-    });
-  }
-
-  void _addMessage(types.Message message) {
-    setState(() {
-      _messages.insert(0, message);
-    });
-  }
-
-  void _handlePreviewDataFetched(
-    types.TextMessage message,
-    types.PreviewData previewData,
-  ) {
-    final index = _messages.indexWhere((element) => element.id == message.id);
-    final updatedMessage = (_messages[index] as types.TextMessage).copyWith(
-      previewData: previewData,
-    );
-
-    setState(() {
-      _messages[index] = updatedMessage;
-    });
-  }
-
   void _handleSendPressed(types.PartialText message) {
-    final textMessage = types.TextMessage(
-      author: types.User(
-        id: Provider.of<AuthState>(context, listen: false).user?.id ??
-            'user-id',
-      ),
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: const Uuid().v4(),
-      text: message.text,
-    );
-
-    _channel.sink.add(message.text);
-    _addMessage(textMessage);
+    Provider.of<HomeState>(context, listen: false)
+        .sendMessage(widget.userId, widget.chatId, message.text);
   }
 
-  void _loadMessages() async {
-    // Load initial messages if necessary.
+  List<types.TextMessage> _formatMessages(List<models.Message> messages) {
+    final messagesFormatted = messages.map((message) => types.TextMessage(
+          author: types.User(id: message.senderId),
+          id: message.id,
+          text: message.text,
+          createdAt: message.sentAt.millisecondsSinceEpoch,
+        ));
+    return messagesFormatted.toList();
   }
 
   @override
-  void dispose() {
-    _channel.sink.close();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final authState = Provider.of<AuthState>(context, listen: false);
+    return Scaffold(
         appBar: AppBar(
-          title: const Text('Chat'),
+          title: Text(widget.chatName),
         ),
-        body: Chat(
-          messages: _messages,
-          onPreviewDataFetched: _handlePreviewDataFetched,
-          onSendPressed: _handleSendPressed,
-          showUserAvatars: true,
-          showUserNames: true,
-          user: types.User(
-            id: Provider.of<AuthState>(context, listen: false).user?.id ??
-                'user-id',
+        body: Consumer<HomeState>(
+          builder: (context, homeState, child) => Chat(
+            messages:
+                _formatMessages(homeState.chats[widget.chatId]?.messages ?? []),
+            onSendPressed: _handleSendPressed,
+            showUserAvatars: true,
+            showUserNames: true,
+            user: types.User(
+              id: authState.user?.id ?? 'user-id',
+            ),
           ),
-        ),
-      );
+        ));
+  }
 }
