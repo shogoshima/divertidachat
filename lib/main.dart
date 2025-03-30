@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:divertidachat/common/theme.dart';
@@ -158,7 +159,8 @@ class HomeState with ChangeNotifier {
 
   void listen() {
     _webSocketService.listen((data) {
-      final message = WebSocketMessage.fromJson(data);
+      final Map<String, dynamic> jsonData = jsonDecode(data);
+      final message = WebSocketMessage.fromJson(jsonData);
       final chatId = message.chatId;
 
       final newMessage = Message(
@@ -179,7 +181,7 @@ class HomeState with ChangeNotifier {
       }
 
       // Add the new message to the corresponding chat
-      _chats[chatId]!.messages.add(newMessage);
+      _chats[chatId]!.messages.insert(0, newMessage);
 
       notifyListeners();
     });
