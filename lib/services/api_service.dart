@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -29,7 +28,6 @@ class ApiService {
   }
 
   dynamic _handleResponse(http.Response response) {
-    log('Response: ${response.body}');
     late dynamic json;
     try {
       json = jsonDecode(response.body);

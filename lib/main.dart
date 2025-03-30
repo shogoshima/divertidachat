@@ -141,20 +141,6 @@ class HomeState with ChangeNotifier {
 
     // Send the message through the WebSocket
     _webSocketService.sendMessage(message);
-
-    final newMessage = Message(
-      id: message.id,
-      chatId: chatId,
-      senderId: message.senderId,
-      sentAt: message.sentAt,
-      text: message.text,
-    );
-
-    // Add the message to the local chat
-    if (_chats.containsKey(chatId)) {
-      _chats[chatId]!.messages.insert(0, newMessage);
-      notifyListeners();
-    }
   }
 
   void listen() {
