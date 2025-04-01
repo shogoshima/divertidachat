@@ -116,13 +116,15 @@ class HomeState with ChangeNotifier {
   final ChatService _chatService;
   final UserService _userService;
 
-  final Map<String, ChatMessages> _chats = {};
-  Map<String, ChatMessages> get chats => _chats;
+  final Map<String, ChatDetails> _chats = {};
+  Map<String, ChatDetails> get chats => _chats;
 
   HomeState(this._webSocketService, this._chatService, this._userService);
 
   Future<void> loadChats() async {
-    final chats = await _chatService.getChats();
+    List<ChatTimestamp> timestamps = await _chatService.getTimestamps();
+    List<String> chatIds = timestamps.map((e) => e.chatId).toList();
+    final chats = await _chatService.getAllUpdatedChats(chatIds);
     _chats.clear();
     _chats.addAll(chats);
     notifyListeners();
@@ -159,10 +161,12 @@ class HomeState with ChangeNotifier {
 
       // Check if the chat already exists in the map
       if (!_chats.containsKey(chatId)) {
-        _chats[chatId] = ChatMessages(
+        _chats[chatId] = ChatDetails(
           chatId: chatId,
           chatName: message.chatName,
+          isGroup: false,
           messages: [],
+          participants: [],
         );
       }
 
@@ -198,10 +202,12 @@ class HomeState with ChangeNotifier {
   Future<void> createChat(String username) async {
     try {
       final chat = await _chatService.createChat(username);
-      _chats[chat.id] = ChatMessages(
-        chatId: chat.id,
-        chatName: chat.name,
+      _chats[chat.chatId] = ChatDetails(
+        chatId: chat.chatId,
+        chatName: chat.chatName,
+        isGroup: false,
         messages: [],
+        participants: chat.participants,
       );
       notifyListeners();
     } catch (e) {

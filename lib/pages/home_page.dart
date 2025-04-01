@@ -72,42 +72,43 @@ class _HomePageState extends State<HomePage> {
                   // Ensure TextField takes available space
                   child: TextField(
                     controller: _usernameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Enter username',
                       border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () async {
-                    final username = _usernameController.text;
-                    if (username.isNotEmpty) {
-                      User? user =
-                          await Provider.of<HomeState>(context, listen: false)
-                              .searchUser(username, context);
+                      hintText: 'Search for a user',
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.search),
+                        onPressed: () async {
+                          final username = _usernameController.text;
+                          if (username.isNotEmpty) {
+                            User? user = await Provider.of<HomeState>(context,
+                                    listen: false)
+                                .searchUser(username, context);
 
-                      if (user != null) {
-                        if (!context.mounted) return;
-                        showUserDialog(
-                          context,
-                          user,
-                          (username) async {
-                            try {
-                              await _homeState.createChat(username);
-                            } catch (e) {
+                            if (user != null) {
                               if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error: $e'),
-                                ),
+                              showUserDialog(
+                                context,
+                                user,
+                                (username) async {
+                                  try {
+                                    await _homeState.createChat(username);
+                                  } catch (e) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error: $e'),
+                                      ),
+                                    );
+                                  }
+                                },
                               );
                             }
-                          },
-                        );
-                      }
-                    }
-                  },
+                          }
+                        },
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -122,10 +123,25 @@ class _HomePageState extends State<HomePage> {
                       itemCount: chats.length,
                       itemBuilder: (context, index) {
                         final chat = chats.values.elementAt(index);
+                        final pictures = chat.participants
+                            .map((participant) => participant.photoUrl)
+                            .where((url) =>
+                                url != null && url != authState.user?.photoUrl)
+                            .cast<String>()
+                            .toList();
                         return ListTile(
+                          leading: pictures.isNotEmpty
+                              ? MultiImageAvatar(imageUrls: pictures)
+                              : const CircleAvatar(
+                                  child: Icon(Icons.person),
+                                ),
                           title: Text(chat.chatName),
                           subtitle: chat.messages.isNotEmpty
-                              ? Text(chat.messages[0].text)
+                              ? Text(
+                                  chat.messages[0].text,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                )
                               : const Text('No messages'),
                           onTap: () {
                             Navigator.push(
@@ -135,6 +151,12 @@ class _HomePageState extends State<HomePage> {
                                   userId: authState.user?.id ?? 'user-id',
                                   chatId: chat.chatId,
                                   chatName: chat.chatName,
+                                  chatPhotoUrl: chat.participants
+                                          .firstWhere((participant) =>
+                                              participant.id !=
+                                              authState.user?.id)
+                                          .photoUrl ??
+                                      '',
                                 ),
                               ),
                             );
