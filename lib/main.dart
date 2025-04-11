@@ -188,6 +188,8 @@ class HomeState with ChangeNotifier {
       if (!_chats.containsKey(chatId)) {
         ChatDetails newChat = await _chatService.getSingleUpdatedChat(chatId);
         _chats[chatId] = newChat;
+        notifyListeners();
+        return;
       }
 
       // Add the new message to the corresponding chat
