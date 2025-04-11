@@ -61,7 +61,7 @@ class ChatService {
     final queryParams = {
       'sent_after': sentAfter != null
           ? sentAfter.toUtc().toIso8601String()
-          : DateTime(1900, 1, 1).toIso8601String(),
+          : DateTime(1900, 1, 1).toUtc().toIso8601String(),
     };
 
     // Pass the endpoint, query parameters, and token.
