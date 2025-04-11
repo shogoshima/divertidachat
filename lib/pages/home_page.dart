@@ -16,6 +16,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late HomeState _homeState;
   final TextEditingController _usernameController = TextEditingController();
+  late Future<void> loadingChats;
 
   @override
   void initState() {
@@ -24,7 +25,7 @@ class _HomePageState extends State<HomePage> {
     _homeState.connect(
         Provider.of<AuthState>(context, listen: false).user?.id ?? 'user-id');
     // Initialize the chats future only once
-    _homeState.loadChats();
+    loadingChats = _homeState.loadChats();
   }
 
   @override
@@ -113,57 +114,82 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          Consumer<HomeState>(
-            builder: (context, homeState, child) {
-              final chats = homeState.chats; // Get chats from homeState
-              return chats.isEmpty
-                  ? const Text('No chats available')
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: chats.length,
-                      itemBuilder: (context, index) {
-                        final chat = chats.values.elementAt(index);
-                        final pictures = chat.participants
-                            .map((participant) => participant.photoUrl)
-                            .where((url) =>
-                                url != null && url != authState.user?.photoUrl)
-                            .cast<String>()
-                            .toList();
-                        return ListTile(
-                          leading: pictures.isNotEmpty
-                              ? MultiImageAvatar(imageUrls: pictures)
-                              : const CircleAvatar(
-                                  child: Icon(Icons.person),
-                                ),
-                          title: Text(chat.chatName),
-                          subtitle: chat.messages.isNotEmpty
-                              ? Text(
-                                  chat.messages[0].text,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                )
-                              : const Text('No messages'),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChatPage(
-                                  userId: authState.user?.id ?? 'user-id',
-                                  chatId: chat.chatId,
-                                  chatName: chat.chatName,
-                                  chatPhotoUrl: chat.participants
-                                          .firstWhere((participant) =>
-                                              participant.id !=
-                                              authState.user?.id)
-                                          .photoUrl ??
-                                      '',
-                                ),
+          FutureBuilder(
+            future: loadingChats,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Expanded(
+                    child: Center(child: CircularProgressIndicator()));
+              } else if (snapshot.hasError) {
+                return const Center(
+                    child: Text('Something unexpected happened.'));
+              } else {
+                // Only read HomeState when Future is done to avoid race conditions
+                final homeState = Provider.of<HomeState>(context);
+                final chats = homeState.chats;
+
+                if (chats.isEmpty) {
+                  return const Center(child: Text('No chats available'));
+                }
+
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: chats.length,
+                    itemBuilder: (context, index) {
+                      final chat = chats.values.elementAt(index);
+                      final pictures = chat.participants
+                          .map((participant) => participant.photoUrl)
+                          .where((url) =>
+                              url != null &&
+                              url !=
+                                  Provider.of<AuthState>(context, listen: false)
+                                      .user
+                                      ?.photoUrl)
+                          .cast<String>()
+                          .toList();
+
+                      return ListTile(
+                        leading: pictures.isNotEmpty
+                            ? MultiImageAvatar(imageUrls: pictures)
+                            : const CircleAvatar(child: Icon(Icons.person)),
+                        title: Text(chat.chatName),
+                        subtitle: chat.messages.isNotEmpty
+                            ? Text(
+                                chat.messages[0].text,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            : const Text('No messages'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatPage(
+                                userId: Provider.of<AuthState>(context,
+                                            listen: false)
+                                        .user
+                                        ?.id ??
+                                    'user-id',
+                                chatId: chat.chatId,
+                                chatName: chat.chatName,
+                                chatPhotoUrl: chat.participants
+                                        .firstWhere((participant) =>
+                                            participant.id !=
+                                            Provider.of<AuthState>(context,
+                                                    listen: false)
+                                                .user
+                                                ?.id)
+                                        .photoUrl ??
+                                    '',
                               ),
-                            );
-                          },
-                        );
-                      },
-                    );
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                );
+              }
             },
           ),
         ],

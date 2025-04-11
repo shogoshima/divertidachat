@@ -10,8 +10,8 @@ import 'package:uuid/uuid.dart';
 
 void main() {
   runApp(MultiProvider(providers: [
-    Provider(create: (_) => ApiService('https://shogoshima.duckdns.org')),
-    Provider(create: (_) => WebSocketService('wss://shogoshima.duckdns.org')),
+    Provider(create: (_) => ApiService('http://10.0.2.2:8080')),
+    Provider(create: (_) => WebSocketService('ws://10.0.2.2:8080')),
     Provider(
         create: (context) => GoogleAuthService(context.read<ApiService>())),
     Provider(create: (context) => ChatService(context.read<ApiService>())),
@@ -172,7 +172,7 @@ class HomeState with ChangeNotifier {
   }
 
   void listen(BuildContext context) {
-    _webSocketService.listen((data) {
+    _webSocketService.listen((data) async {
       final message = WebSocketMessage.fromJson(data);
       final chatId = message.chatId;
 
@@ -186,13 +186,8 @@ class HomeState with ChangeNotifier {
 
       // Check if the chat already exists in the map
       if (!_chats.containsKey(chatId)) {
-        _chats[chatId] = ChatDetails(
-          chatId: chatId,
-          chatName: message.chatName,
-          isGroup: false,
-          messages: [],
-          participants: [],
-        );
+        ChatDetails newChat = await _chatService.getSingleUpdatedChat(chatId);
+        _chats[chatId] = newChat;
       }
 
       // Add the new message to the corresponding chat

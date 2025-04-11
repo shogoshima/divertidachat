@@ -49,8 +49,8 @@ class ChatService {
     return chats;
   }
 
-  Future<ChatDetails> getSingleUpdatedChat(
-      String chatId, DateTime sentAfter) async {
+  Future<ChatDetails> getSingleUpdatedChat(String chatId,
+      [DateTime? sentAfter]) async {
     final storage = SecureStorage();
     final token = await storage.getToken();
     if (token == null) {
@@ -59,7 +59,9 @@ class ChatService {
 
     // Build query parameters. Our `get` method will handle converting list values properly.
     final queryParams = {
-      'sent_after': sentAfter.toUtc().toIso8601String(),
+      'sent_after': sentAfter != null
+          ? sentAfter.toUtc().toIso8601String()
+          : DateTime(1900, 1, 1).toIso8601String(),
     };
 
     // Pass the endpoint, query parameters, and token.
