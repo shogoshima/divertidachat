@@ -117,23 +117,21 @@ class _HomePageState extends State<HomePage> {
           FutureBuilder(
             future: loadingChats,
             builder: (context, snapshot) {
+              Widget child;
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Expanded(
-                    child: Center(child: CircularProgressIndicator()));
+                child = Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return const Center(
-                    child: Text('Something unexpected happened.'));
+                child =
+                    const Center(child: Text('Something unexpected happened.'));
               } else {
                 // Only read HomeState when Future is done to avoid race conditions
                 final homeState = Provider.of<HomeState>(context);
                 final chats = homeState.chats;
 
                 if (chats.isEmpty) {
-                  return const Center(child: Text('No chats available'));
-                }
-
-                return Expanded(
-                  child: ListView.builder(
+                  child = Center(child: Text('No chats available'));
+                } else {
+                  child = ListView.builder(
                     itemCount: chats.length,
                     itemBuilder: (context, index) {
                       final chat = chats.values.elementAt(index);
@@ -187,9 +185,10 @@ class _HomePageState extends State<HomePage> {
                         },
                       );
                     },
-                  ),
-                );
+                  );
+                }
               }
+              return Expanded(child: child);
             },
           ),
         ],

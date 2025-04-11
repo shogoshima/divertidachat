@@ -10,8 +10,8 @@ import 'package:uuid/uuid.dart';
 
 void main() {
   runApp(MultiProvider(providers: [
-    Provider(create: (_) => ApiService('http://10.0.2.2:8080')),
-    Provider(create: (_) => WebSocketService('ws://10.0.2.2:8080')),
+    Provider(create: (_) => ApiService('https://shogoshima.duckdns.org')),
+    Provider(create: (_) => WebSocketService('wss://shogoshima.duckdns.org')),
     Provider(
         create: (context) => GoogleAuthService(context.read<ApiService>())),
     Provider(create: (context) => ChatService(context.read<ApiService>())),
