@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Initialize the WebSocket connection
-    _homeState.listen();
+    _homeState.listen(context);
   }
 
   @override

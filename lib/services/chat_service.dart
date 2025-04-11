@@ -110,4 +110,29 @@ class ChatService {
 
     return ChatDetails.fromJson(data['chat']);
   }
+
+  Future<List<TextFilter>> getTextFilters() async {
+    final storage = SecureStorage();
+    final token = await storage.getToken();
+    if (token == null) {
+      throw Exception('No token found');
+    }
+
+    final data = await api.get('/chats/textfilters', token);
+    if (data == null) {
+      throw Exception('Failed to load text styles');
+    }
+
+    List<TextFilter> textFilters = [];
+    if (data == null) {
+      return textFilters;
+    }
+
+    for (var textFilter in data) {
+      final style = TextFilter.fromJson(textFilter);
+      textFilters.add(style);
+    }
+
+    return textFilters;
+  }
 }

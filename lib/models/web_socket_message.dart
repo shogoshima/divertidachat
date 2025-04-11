@@ -5,6 +5,7 @@ class WebSocketMessage {
   final String chatId;
   final String chatName;
   final DateTime sentAt;
+  final int textFilterId;
 
   WebSocketMessage({
     required this.id,
@@ -13,6 +14,7 @@ class WebSocketMessage {
     required this.chatId,
     required this.chatName,
     required this.sentAt,
+    required this.textFilterId,
   });
 
   Map<String, dynamic> toJson() {
@@ -23,6 +25,7 @@ class WebSocketMessage {
       'chat_id': chatId.toString(),
       'chat_name': chatName,
       'sent_at': sentAt.toUtc().toIso8601String(),
+      'text_filter_id': textFilterId,
     };
   }
 
@@ -34,6 +37,7 @@ class WebSocketMessage {
       chatId: json['chat_id'],
       chatName: json['chat_name'],
       sentAt: DateTime.parse(json['sent_at']),
+      textFilterId: json['text_filter_id'],
     );
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:divertidachat/common/theme.dart';
@@ -11,8 +10,8 @@ import 'package:uuid/uuid.dart';
 
 void main() {
   runApp(MultiProvider(providers: [
-    Provider(create: (_) => ApiService('http://10.0.2.2:8080')),
-    Provider(create: (_) => WebSocketService('ws://10.0.2.2:8080')),
+    Provider(create: (_) => ApiService('https://shogoshima.duckdns.org')),
+    Provider(create: (_) => WebSocketService('wss://shogoshima.duckdns.org')),
     Provider(
         create: (context) => GoogleAuthService(context.read<ApiService>())),
     Provider(create: (context) => ChatService(context.read<ApiService>())),
@@ -119,14 +118,40 @@ class HomeState with ChangeNotifier {
   final Map<String, ChatDetails> _chats = {};
   Map<String, ChatDetails> get chats => _chats;
 
-  HomeState(this._webSocketService, this._chatService, this._userService);
+  final List<TextFilter> _textFilters = [];
+  List<TextFilter> get textFilters => _textFilters;
+
+  TextFilter _activeTextFilter;
+  TextFilter get activeTextFilter => _activeTextFilter;
+
+  HomeState(this._webSocketService, this._chatService, this._userService)
+      : _activeTextFilter =
+            TextFilter(id: 0, name: 'Default', emoji: '', command: '');
 
   Future<void> loadChats() async {
+    // Fetch the updated timestamps
     List<ChatTimestamp> timestamps = await _chatService.getTimestamps();
+
+    // TODO: Check the chats that need to be updated on the database
+
+    // Fetch the chats based on the timestamps
     List<String> chatIds = timestamps.map((e) => e.chatId).toList();
     final chats = await _chatService.getAllUpdatedChats(chatIds);
+
+    // Fetch the text filters, and set the default as the first one
+    final textFilters = await _chatService.getTextFilters();
+    _textFilters.clear();
+    _textFilters.addAll(textFilters);
+    setActiveTextFilter(textFilters[0]);
+
     _chats.clear();
     _chats.addAll(chats);
+    notifyListeners();
+  }
+
+  void setActiveTextFilter(TextFilter textFilter) {
+    _activeTextFilter = textFilter;
+    log('Active text filter set to: ${textFilter.name}');
     notifyListeners();
   }
 
@@ -139,16 +164,16 @@ class HomeState with ChangeNotifier {
       senderId: userId,
       sentAt: DateTime.now(),
       text: text,
+      textFilterId: activeTextFilter.id,
     );
 
     // Send the message through the WebSocket
     _webSocketService.sendMessage(message);
   }
 
-  void listen() {
+  void listen(BuildContext context) {
     _webSocketService.listen((data) {
-      final Map<String, dynamic> jsonData = jsonDecode(data);
-      final message = WebSocketMessage.fromJson(jsonData);
+      final message = WebSocketMessage.fromJson(data);
       final chatId = message.chatId;
 
       final newMessage = Message(
@@ -174,7 +199,7 @@ class HomeState with ChangeNotifier {
       _chats[chatId]!.messages.insert(0, newMessage);
 
       notifyListeners();
-    });
+    }, context);
   }
 
   void connect(String userId) {

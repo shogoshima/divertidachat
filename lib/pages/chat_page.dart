@@ -25,7 +25,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   void _handleSendPressed(types.PartialText message) {
-    if (message.text.length > 50) {
+    if (message.text.length > 75) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Message too long.'),
